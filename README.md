@@ -14,25 +14,3 @@ França SecOps é uma página de apresentação de uma proposta de serviços ger
 Este repositório contém uma página estática feita em HTML, CSS e JavaScript, em [Painel final Banco de dados index.html](<Painel final Banco de dados index.html>). A tela de alertas é uma simulação visual: o projeto ainda não coleta eventos reais, conecta-se a um banco PostgreSQL ou executa operações de SOC.
 
 O formulário de contato também é demonstrativo. Ele valida os campos no navegador, mas não envia nem armazena solicitações. Para uso operacional, será necessário implementar e conectar um backend aos serviços e dados reais.
-
-## Executar localmente
-
-Abra o arquivo HTML no navegador. Alternativamente, com Docker instalado, execute na raiz do repositório:
-
-```sh
-docker build -t franca-secops .
-docker run --rm -p 8080:80 franca-secops
-```
-
-Depois, acesse <http://localhost:8080>.
-
-## Publicação no EasyPanel
-
-O projeto está configurado para ser servido pelo Nginx definido em [Dockerfile](Dockerfile). No EasyPanel, use:
-
-- **Origem:** GitHub, repositório `felixdosreis/FrancaSecOps`, branch `main`.
-- **Build Path:** `/`.
-- **Builder:** Dockerfile (`Dockerfile`).
-- **Porta de destino:** `80`.
-
-Site publicado: <https://francasecops002025-modelo01.h5l90z.easypanel.host/>.
