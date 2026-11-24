@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>França SecOps — Centro de Operações de Segurança (SOC) e Auditoria</title>
+  <meta name="description" content="França SecOps: monitoramento contínuo de ameaças, triagem priorizada de alertas em VPN, DMZ e estações, e auditoria automatizada para conformidade LGPD." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070B0E;
+      --surface: #101820;
+      --surface-elevated: #15212C;
+      --primary: #00E5A0;
+      --primary-dim: rgba(0, 229, 160, 0.14);
+      --secondary: #1F3A4B;
+      --accent: #F59E0B;
+      --accent-dim: rgba(245, 158, 11, 0.14);
+      --danger: #F87171;
+      --text: #E6EDF3;
+      --text-muted: #93A4B4;
+      --border: rgba(147, 164, 180, 0.16);
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 10px;
+      --max-w: 1180px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(31, 58, 75, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 58, 75, 0.18) 1px, transparent 1px);
+      background-size: 48px 48px;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 11, 14, 0.86);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-divider {
+      width: 2px;
+      height: 30px;
+      background: linear-gradient(180deg, transparent 0%, var(--text) 18%, var(--text) 82%, transparent 100%);
+      border-radius: 2px;
+    }
+
+    .brand-wordmark {
+      display: flex;
+      flex-direction: column;
+      font-size: 1.06rem;
+      color: var(--text);
+    }
+
+    .brand-wordmark .accent {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.78rem 1.35rem;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #04130D;
+    }
+
+    .btn-primary:hover {
+      background: #14F5B0;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--secondary);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Sections */
+    section {
+      padding: 5rem 0;
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-kicker::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--primary);
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    h2 {
+      font-size: clamp(1.75rem, 3vw, 2.45rem);
+      margin-bottom: 0.85rem;
+    }
+
+    .section-lead {
+      color: var(--text-muted);
+      max-width: 660px;
+      margin-bottom: 2.5rem;
+      font-size: 1.02rem;
+    }
+
+    /* Hero Split */
+    .hero {
+      padding: 4.5rem 0 5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.15rem, 4.2vw, 3.35rem);
+      margin-bottom: 1.15rem;
+    }
+
+    .hero h1 .highlight {
+      color: var(--primary);
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.06rem;
+      margin-bottom: 1.85rem;
+      max-width: 540px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      padding: 0.35rem 0.68rem;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* Signature Element: SOC Terminal */
+    .soc-terminal {
+      background: #0B1117;
+      border: 1px solid var(--secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 229, 160, 0.08);
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .dots {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--secondary);
+    }
+
+    .dot.live {
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    .terminal-body {
+      padding: 1.15rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 310px;
+    }
+
+    .term-cmd {
+      color: var(--primary);
+    }
+
+    .alert-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.65rem 0.75rem;
+      background: rgba(16, 24, 32, 0.85);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--secondary);
+      border-radius: 6px;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .alert-row.active-scan {
+      border-left-color: var(--accent);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .alert-row.resolved {
+      border-left-color: var(--primary);
+    }
+
+    .sev {
+      font-size: 0.68rem;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .sev-critica { background: rgba(248, 113, 113, 0.16); color: var(--danger); }
+    .sev-alta { background: var(--accent-dim); color: var(--accent); }
+    .sev-media { background: rgba(56, 189, 248, 0.15); color: #7DD3FC; }
+    .sev-baixa { background: var(--primary-dim); color: var(--primary); }
+
+    .status-pill {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .terminal-audit {
+      margin-top: auto;
+      padding-top: 0.7rem;
+      border-top: 1px dashed var(--border);
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-audit strong {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* Visual Placeholder Frame (Etapa 4.4 - sem acesso web) */
+    .visual-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0D1720 0%, #162B3A 55%, #0A141B 100%);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .visual-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0, 229, 160, 0.16) 1px, transparent 1px);
+      background-size: 18px 18px;
+      opacity: 0.45;
+    }
+
+    .visual-frame svg {
+      position: relative;
+      z-index: 1;
+      width: 44px;
+      height: 44px;
+      color: var(--primary);
+    }
+
+    .visual-caption {
+      position: relative;
+      z-index: 1;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 0.22rem 0.6rem;
+      background: rgba(7, 11, 14, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* Grids & Cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(0, 229, 160, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .card-featured {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, rgba(0, 229, 160, 0.07) 0%, var(--surface) 45%);
+    }
+
+    .card h3 {
+      font-size: 1.22rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.94rem;
+    }
+
+    .tag-cat {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.45rem;
+    }
+
+    .card .btn {
+      margin-top: auto;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 0.85rem 0 1.4rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .feature-list li::before {
+      content: "▸ ";
+      color: var(--primary);
+      font-family: var(--font-mono);
+    }
+
+    /* Process Timeline */
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      display: inline-block;
+    }
+
+    /* Institutional & Team */
+    .mvv-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2.25rem;
+    }
+
+    .team-role {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--primary);
+      margin-bottom: 0.35rem;
+    }
+
+    /* Contact */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+    }
+
+    .info-box span {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+    }
+
+    form.contact-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field label {
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 0.9rem;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.94rem;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-feedback {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      min-height: 1.25rem;
+    }
+
+    .form-feedback.ok { color: var(--primary); }
+    .form-feedback.err { color: var(--danger); }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.25rem 0;
+      background: #05080A;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .card:hover, .btn-primary:hover { transform: none; }
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .hero-grid, .grid-3, .grid-4, .mvv-grid, .contact-grid {
+        grid-template-columns: 1fr;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .menu-toggle { display: inline-flex; }
+      .nav-links {
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        padding: 1.25rem;
+        gap: 1rem;
+        display: none;
+      }
+      .nav-links.open { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav-bar">
+      <a href="#inicio" class="brand" aria-label="França SecOps - Página inicial">
+        <!-- Símbolo oficial (cadeado + escudo + F estilizado) adaptado ao tom de cor do sistema -->
+        <svg width="38" height="42" viewBox="0 0 64 72" fill="none" aria-hidden="true">
+          <!-- Arco superior do cadeado -->
+          <path d="M15 24V19C15 10.2 22.2 3 31 3C39.8 3 47 10.2 47 19V22H39.5V19C39.5 14.3 35.7 10.5 31 10.5C26.3 10.5 22.5 14.3 22.5 19V24H15Z" fill="#00E5A0"/>
+          <!-- Corpo externo esquerdo e barra superior estilo F com corte diagonal -->
+          <path d="M7 36C7 28.3 13.3 22 21 22H55L46.5 30.5H22.5C18.4 30.5 15 33.9 15 38V57L7 51.8V36Z" fill="#00E5A0"/>
+          <!-- F interno (sem fechadura, conforme símbolo enviado) -->
+          <path d="M19.5 41.5C19.5 37.1 23.1 33.5 27.5 33.5H43.5L37.5 39.5H28.5C27.4 39.5 26.5 40.4 26.5 41.5V65.5L19.5 61V41.5Z" fill="#E6EDF3"/>
+          <!-- Contorno direito do escudo -->
+          <path d="M53.5 29V49.5C53.5 56.4 48.2 61.9 33.5 69.5V61.6C42.2 57 46 53.2 46 48.2V36.5L53.5 29Z" fill="#00E5A0"/>
+        </svg>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-wordmark">
+          <span>França</span>
+          <span>Sec<span class="accent">Ops</span></span>
+        </span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Abrir menu de navegação">
+        Menu ☰
+      </button>
+
+      <nav aria-label="Navegação principal">
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#operacao">Operação</a></li>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#processo">Como funciona</a></li>
+          <li><a href="#diferenciais">Diferenciais</a></li>
+          <li><a href="#institucional">Sobre</a></li>
+          <li><a href="#contato" class="btn btn-primary">Falar com o SOC</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1. HERÓI -->
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div>
+          <span class="section-kicker">Centro de Operações de Segurança Gerenciado</span>
+          <h1>Nenhum alerta crítico <span class="highlight">sem resposta</span> na sua operação.</h1>
+          <p>
+            A França SecOps monitora acessos VPN, perímetros DMZ, estações de trabalho e bancos de dados com triagem priorizada por gravidade e trilhas imutáveis de auditoria.
+          </p>
+          <div class="hero-actions">
+            <a href="#servicos" class="btn btn-primary">Conhecer planos de SOC</a>
+            <a href="#processo" class="btn btn-outline">Ver fluxo de resposta</a>
+          </div>
+          <div class="hero-badges">
+            <span class="chip">Triagem: baixa → critica</span>
+            <span class="chip">Auditoria via trigger</span>
+            <span class="chip">Conformidade LGPD</span>
+          </div>
+        </div>
+
+        <!-- Elemento-assinatura: Console de Triagem SOC em tempo real -->
+        <aside class="soc-terminal" aria-label="Simulação ao vivo da fila de alertas do SOC França SecOps">
+          <div class="terminal-top">
+            <div class="dots" aria-hidden="true">
+              <span class="dot live"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span>soc-console :: franca_secops (PostgreSQL)</span>
+          </div>
+          <div class="terminal-body" id="socConsole">
+            <div class="term-cmd">$ SELECT id_alerta, gravidade, status FROM alerta ORDER BY id_alerta;</div>
+            <div class="alert-row" data-idx="0">
+              <span class="sev sev-alta">alta</span>
+              <span>Login suspeito na VPN</span>
+              <span class="status-pill" data-status>novo</span>
+            </div>
+            <div class="alert-row" data-idx="1">
+              <span class="sev sev-media">media</span>
+              <span>Varredura de portas na DMZ</span>
+              <span class="status-pill" data-status>em_analise</span>
+            </div>
+            <div class="alert-row" data-idx="2">
+              <span class="sev sev-critica">critica</span>
+              <span>Malware detectado em estação</span>
+              <span class="status-pill" data-status>novo</span>
+            </div>
+            <div class="alert-row resolved" data-idx="3">
+              <span class="sev sev-baixa">baixa</span>
+              <span>Phishing reportado por usuário</span>
+              <span class="status-pill" data-status>encerrado</span>
+            </div>
+            <div class="terminal-audit" id="auditLine">
+              <strong>[log_acesso :: trigger]</strong> Aguardando ciclo de triagem...
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 2. O QUE FAZEMOS -->
+    <section id="operacao">
+      <div class="container reveal">
+        <span class="section-kicker">Cobertura de ameaças</span>
+        <h2>Monitoramento focado nos vetores que param empresas</h2>
+        <p class="section-lead">
+          Atuamos continuamente sobre os pontos mais explorados em ambientes corporativos híbridos, classificando cada evento por criticidade para eliminar filas esquecidas.
+        </p>
+
+        <!-- IMAGEM: buscar "cybersecurity operations center dark monitors" no Unsplash -->
+        <div class="visual-frame" role="img" aria-label="Ilustração tática do Centro de Operações de Segurança monitorando VPN, DMZ, estações e e-mail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4M6 10l3-2 3 3 4-4 2 2"/>
+          </svg>
+          <span class="visual-caption">SOC MONITORAMENTO CONTÍNUO // VPN • DMZ • ENDPOINTS • PHISHING</span>
+        </div>
+
+        <div class="grid-4">
+          <article class="card">
+            <span class="tag-cat">Acesso Remoto</span>
+            <h3>Anomalias em VPN</h3>
+            <p>Detecção de logins suspeitos, credenciais comprometidas e acessos fora do padrão corporativo.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Perímetro Web</span>
+            <h3>Varreduras em DMZ</h3>
+            <p>Identificação antecipada de reconhecimento de portas e tentativas de exploração em serviços expostos.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Endpoints</span>
+            <h3>Malware em Estações</h3>
+            <p>Priorização máxima de incidentes críticos em computadores corporativos com contenção orientada.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Engenharia Social</span>
+            <h3>Triagem de Phishing</h3>
+            <p>Análise ágil de mensagens suspeitas reportadas por colaboradores antes que comprometam cadastros.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PRODUTOS E SERVIÇOS (PORTFÓLIO) -->
+    <section id="servicos">
+      <div class="container reveal">
+        <span class="section-kicker">Portfólio de serviços</span>
+        <h2>Planos sob medida para a maturidade da sua equipe</h2>
+        <p class="section-lead">
+          Escolha entre monitoramento contínuo gerenciado ou auditoria especializada de bancos de dados e conformidade LGPD.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <!-- IMAGEM: buscar "server room dark blue green lights" no Unsplash -->
+            <div class="visual-frame" role="img" aria-label="Ilustração do plano SOC Essencial para monitoramento contínuo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <rect x="4" y="4" width="16" height="6" rx="1.5"/>
+                <rect x="4" y="14" width="16" height="6" rx="1.5"/>
+                <circle cx="8" cy="7" r="1" fill="currentColor"/>
+                <circle cx="8" cy="17" r="1" fill="currentColor"/>
+              </svg>
+              <span class="visual-caption">MONITORAMENTO CONTÍNUO</span>
+            </div>
+            <span class="tag-cat">Monitoramento Contínuo</span>
+            <h3>SOC Essencial</h3>
+            <p>Recepção, classificação por gravidade e triagem de alertas de rede, VPN, phishing e estações em horário comercial.</p>
+            <ul class="feature-list">
+              <li>Classificação em 4 níveis de gravidade</li>
+              <li>Triagem estruturada de alertas de VPN e phishing</li>
+              <li>Relatório mensal de incidentes tratados</li>
+            </ul>
+            <a href="#contato" class="btn btn-outline">Falar com a equipe</a>
+          </article>
+
+          <article class="card card-featured">
+            <!-- IMAGEM: buscar "security analyst monitoring dashboard dark" no Pexels -->
+            <div class="visual-frame" role="img" aria-label="Ilustração do plano SOC Avançado 24/7 com resposta gerenciada">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <path d="M12 2L20 6v6c0 5.2-3.4 9.5-8 10.8C7.4 21.5 4 17.2 4 12V6l8-4z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span class="visual-caption">RESPOSTA GERENCIADA 24/7</span>
+            </div>
+            <span class="tag-cat">Resposta Gerenciada</span>
+            <h3>SOC Avançado 24/7</h3>
+            <p>Monitoramento ininterrupto com atribuição imediata de analistas, contenção de incidentes críticos e auditoria mensal.</p>
+            <ul class="feature-list">
+              <li>Cobertura contínua 24 horas por dia, 7 dias por semana</li>
+              <li>Atribuição imediata de responsável em alertas críticos</li>
+              <li>Relatórios completos da trilha de auditoria</li>
+            </ul>
+            <a href="#contato" class="btn btn-primary">Falar com o SOC</a>
+          </article>
+
+          <article class="card">
+            <!-- IMAGEM: buscar "database security code terminal dark" no Unsplash -->
+            <div class="visual-frame" role="img" aria-label="Ilustração do serviço de Auditoria de Banco de Dados e LGPD">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <ellipse cx="12" cy="5" rx="8" ry="3"/>
+                <path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
+                <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/>
+              </svg>
+              <span class="visual-caption">AUDITORIA BD &amp; LGPD</span>
+            </div>
+            <span class="tag-cat">Consultoria Especializada</span>
+            <h3>Auditoria de Banco de Dados e LGPD</h3>
+            <p>Revisão de controle de acesso, mitigação de SQL Injection, eliminação de senhas expostas e proteção de dados pessoais.</p>
+            <ul class="feature-list">
+              <li>Revisão de privilégios e segregação de papéis</li>
+              <li>Blindagem contra SQL Injection e hardening de credenciais</li>
+              <li>Adequação de dados sensíveis (CPF) à LGPD</li>
+            </ul>
+            <a href="#contato" class="btn btn-outline">Agendar diagnóstico</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. COMO FUNCIONA (PROCESSO) -->
+    <section id="processo">
+      <div class="container reveal">
+        <span class="section-kicker">Arquitetura operacional</span>
+        <h2>Como tratamos cada incidente, do alerta à auditoria</h2>
+        <p class="section-lead">
+          Nosso fluxo operacional garante controle de acesso rigoroso, responsabilidade nominal sobre cada ocorrência e registro automático sem intervenção manual.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <span class="step-num">ETAPA 01 // CONTROLE DE ACESSO</span>
+            <h3>Autenticação por papéis</h3>
+            <p>Operadores acessam o portal conforme privilégio mínimo — separando estritamente analistas, gestão de SLA e administração de infraestrutura.</p>
+          </article>
+          <article class="card">
+            <span class="step-num">ETAPA 02 // CICLO DE VIDA</span>
+            <h3>Triagem e contenção</h3>
+            <p>Todo evento entra classificado por gravidade, recebe um responsável dedicado para investigação técnica e só é encerrado após mitigação validada.</p>
+          </article>
+          <article class="card">
+            <span class="step-num">ETAPA 03 // RASTREABILIDADE</span>
+            <h3>Auditoria automatizada</h3>
+            <p>Ações críticas disparam registros automáticos em banco de dados com data, hora e operador, assegurando integridade e não repúdio para auditorias.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. DIFERENCIAIS -->
+    <section id="diferenciais">
+      <div class="container reveal">
+        <span class="section-kicker">Por que a França SecOps</span>
+        <h2>Segurança desenhada desde o banco de dados</h2>
+        <p class="section-lead">
+          Diferente de suportes reativos de TI, combinamos operação de SOC com engenharia de segurança em bancos de dados relacionais.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <!-- IMAGEM: buscar "cybersecurity shield lock abstract dark" no Pixabay -->
+            <div class="visual-frame" role="img" aria-label="Ilustração de auditoria imutável e segregação de papéis">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="10" rx="2"/>
+                <path d="M8 11V7a4 4 0 118 0v4"/>
+                <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
+              </svg>
+              <span class="visual-caption">TRILHA IMUTÁVEL + PRIVILÉGIO MÍNIMO</span>
+            </div>
+            <h3>Auditoria nativa sem edição manual</h3>
+            <p>Nossas trilhas de auditoria são gravadas automaticamente por gatilhos de banco de dados, impedindo adulterações e entregando evidências sólidas para a LGPD.</p>
+          </article>
+
+          <article class="card">
+            <!-- IMAGEM: buscar "network infrastructure cables dark teal" no Unsplash -->
+            <div class="visual-frame" role="img" aria-label="Ilustração de resposta integrada entre rede, endpoints e banco de dados">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <circle cx="6" cy="6" r="2.5"/>
+                <circle cx="18" cy="6" r="2.5"/>
+                <circle cx="12" cy="18" r="2.5"/>
+                <path d="M8 7.5L11 15.8M16 7.5L13 15.8M8.5 6h7"/>
+              </svg>
+              <span class="visual-caption">REDE • ENDPOINT • BANCO DE DADOS</span>
+            </div>
+            <h3>Visão unificada de rede, estações e dados</h3>
+            <p>Correlacionamos acessos suspeitos de VPN, varreduras em DMZ e proteção de dados pessoais (como CPF) em uma única rotina operacional acessível para PMEs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. PARA QUEM É (SEGMENTOS) -->
+    <section id="segmentos">
+      <div class="container reveal">
+        <span class="section-kicker">Segmentos atendidos</span>
+        <h2>Construído para organizações que não podem parar</h2>
+        <p class="section-lead">
+          Atendemos remotamente todo o Brasil com base presencial na região Centro-Oeste, apoiando empresas que precisam de proteção real sem custos de consultorias globais.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <span class="tag-cat">Infraestrutura Híbrida</span>
+            <h3>PMEs com trabalho remoto</h3>
+            <p>Empresas de 30 a 200 colaboradores que dependem de VPN e estações corporativas distribuídas e precisam conter malware e acessos indevidos.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Serviços Expostos</span>
+            <h3>Operações web e e-commerce</h3>
+            <p>Negócios com servidores em DMZ e bases com alto volume de dados pessoais que exigem monitoramento de perímetro e proteção LGPD.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Dados Sensíveis</span>
+            <h3>Escritórios e clínicas</h3>
+            <p>Organizações expostas a campanhas de phishing e engenharia social que precisam proteger cadastros confidenciais de clientes e pacientes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. MISSÃO, VISÃO, VALORES E EQUIPE -->
+    <section id="institucional">
+      <div class="container reveal">
+        <span class="section-kicker">Institucional</span>
+        <h2>Princípios e papéis da operação</h2>
+        <p class="section-lead">
+          Atuamos sob governança estrita de papéis operacionais, mantendo a identidade dos nossos especialistas protegida por políticas internas de segurança.
+        </p>
+
+        <div class="mvv-grid">
+          <article class="card">
+            <span class="tag-cat">Missão</span>
+            <p>Proteger a continuidade operacional de organizações por meio do monitoramento contínuo, triagem ágil de incidentes e governança auditável de acessos.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Visão</span>
+            <p>Consolidar-se como referência regional em serviços gerenciados de SOC e segurança de dados para médias empresas até 2030.</p>
+          </article>
+          <article class="card">
+            <span class="tag-cat">Valores</span>
+            <p>Integridade e rastreabilidade total, privilégio mínimo, transparência com o cliente, conformidade rigorosa com a LGPD e resposta disciplinada.</p>
+          </article>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <span class="team-role">CISO / GESTÃO DE OPERAÇÕES</span>
+            <h3>UserName</h3>
+            <p>Coordenação de SLAs, priorização de incidentes críticos, governança de TI e conformidade regulatória LGPD.</p>
+          </article>
+          <article class="card">
+            <span class="team-role">CTO / ADMINISTRAÇÃO DE SISTEMAS</span>
+            <h3>UserName</h3>
+            <p>Arquitetura de bancos de dados seguros em PostgreSQL, gestão de privilégios, triggers de auditoria e hardening.</p>
+          </article>
+          <article class="card">
+            <span class="team-role">EQUIPE DE ANALISTAS SOC</span>
+            <h3>UserName</h3>
+            <p>Monitoramento contínuo da fila de alertas, investigação técnica de ameaças e encerramento documentado de incidentes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. CONTATO -->
+    <section id="contato">
+      <div class="container reveal">
+        <span class="section-kicker">Contato comercial</span>
+        <h2>Solicite um diagnóstico da sua operação</h2>
+        <p class="section-lead">
+          Converse diretamente com nossa equipe técnica para avaliar o nível de exposição da sua infraestrutura e escolher o plano ideal.
+        </p>
+
+        <div class="contact-grid">
+          <div class="contact-info">
+            <div class="info-box">
+              <span>Localização e cobertura</span>
+              <strong>Cidade Ocidental – GO</strong> · Atendimento presencial no Centro-Oeste e remoto para todo o Brasil.
+            </div>
+            <div class="info-box">
+              <span>E-mail comercial</span>
+              <strong>contato@francasecops.com.br</strong>
+            </div>
+            <div class="info-box">
+              <span>Telefone / Plantão Comercial</span>
+              <strong>(61) 0000-0000</strong>
+            </div>
+          </div>
+
+          <form class="contact-form" id="contactForm" novalidate>
+            <div class="field">
+              <label for="nome">Seu nome</label>
+              <input type="text" id="nome" name="nome" placeholder="Ex.: UserName" required />
+            </div>
+            <div class="field">
+              <label for="email">E-mail corporativo</label>
+              <input type="email" id="email" name="email" placeholder="voce@empresa.com.br" required />
+            </div>
+            <div class="field">
+              <label for="servico">Serviço de interesse</label>
+              <select id="servico" name="servico">
+                <option value="SOC Essencial">SOC Essencial</option>
+                <option value="SOC Avançado 24/7">SOC Avançado 24/7</option>
+                <option value="Auditoria de Banco de Dados e LGPD">Auditoria de Banco de Dados e LGPD</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mensagem">Cenário atual</label>
+              <textarea id="mensagem" name="mensagem" rows="3" placeholder="Conte brevemente sobre sua infraestrutura (VPN, servidores, banco de dados)..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar solicitação</button>
+            <div class="form-feedback" id="formFeedback" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>© 2026 França SecOps Ltda. · Cidade Ocidental – GO · Segurança Operacional e Auditoria.</div>
+      <div> </div>
+    </div>
+  </footer>
+
+  <script>
+    // Menu responsivo mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', String(open));
+    });
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Animação de entrada ao rolar (IntersectionObserver)
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reveals = document.querySelectorAll('.reveal');
+    if (prefersReduced) {
+      reveals.forEach(el => el.classList.add('visible'));
+    } else {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      reveals.forEach(el => observer.observe(el));
+    }
+
+    // Elemento-assinatura: simulação de triagem no console SOC
+    const rows = document.querySelectorAll('.alert-row');
+    const auditLine = document.getElementById('auditLine');
+    const steps = [
+      { idx: 0, status: 'em_analise', cls: 'active-scan', log: 'UPDATE alerta SET status=em_analise (VPN) -> registrado por trigger' },
+      { idx: 2, status: 'em_analise', cls: 'active-scan', log: 'ESCALONAMENTO CRÍTICO: Malware atribuído ao plantão SOC' },
+      { idx: 0, status: 'encerrado',  cls: 'resolved',    log: 'INCIDENTE #1 mitigado e encerrado :: trilha gravada em log_acesso' },
+      { idx: 2, status: 'encerrado',  cls: 'resolved',    log: 'INCIDENTE #3 contido :: estação isolada e auditada' },
+      { idx: 0, status: 'novo',       cls: '',            log: 'Monitoramento contínuo ativo :: fila sincronizada em PostgreSQL' }
+    ];
+    let stepIdx = 0;
+    if (!prefersReduced && rows.length) {
+      setInterval(() => {
+        const s = steps[stepIdx];
+        const row = rows[s.idx];
+        row.classList.remove('active-scan', 'resolved');
+        if (s.cls) row.classList.add(s.cls);
+        row.querySelector('[data-status]').textContent = s.status;
+        if (stepIdx === 4) {
+          rows[2].classList.remove('active-scan', 'resolved');
+          rows[2].querySelector('[data-status]').textContent = 'novo';
+        }
+        auditLine.innerHTML = '<strong>[log_acesso :: trigger]</strong> ' + s.log;
+        stepIdx = (stepIdx + 1) % steps.length;
+      }, 2800);
+    }
+
+    // Validação simples do formulário de contato (apenas visual)
+    const form = document.getElementById('contactForm');
+    const feedback = document.getElementById('formFeedback');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nome = form.nome.value.trim();
+      const email = form.email.value.trim();
+      const msg = form.mensagem.value.trim();
+      if (!nome || !email || !email.includes('@') || msg.length < 10) {
+        feedback.textContent = '[ERRO] Preencha nome, e-mail corporativo válido e descreva brevemente seu cenário (mín. 10 caracteres).';
+        feedback.className = 'form-feedback err';
+        return;
+      }
+      feedback.textContent = '[OK] Solicitação registrada visualmente para ' + form.servico.value + '. Nossa equipe SOC retornará em breve.';
+      feedback.className = 'form-feedback ok';
+      form.reset();
+    });
+  </script>
+</body>
+</html>
